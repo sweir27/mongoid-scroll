@@ -15,6 +15,19 @@ describe Mongoid::Scroll::Cursor do
                                                                                                                   /The cursor supplied is invalid: invalid./
     end
   end
+  context 'an id field cursor' do
+    let(:feed_item) { Feed::Item.create!(a_string: 'astring') }
+    subject do
+      Mongoid::Scroll::Cursor.new "#{feed_item.id.to_s}:#{feed_item.id.to_s}", field_name: '_id', field_type: BSON::ObjectId, direction: 1
+    end
+    its(:value) { should eq feed_item.id.to_s }
+    its(:tiebreak_id) { should eq feed_item.id }
+    its(:criteria) do
+      should eq("$or" => [
+        { "_id" => { "$gt" => BSON::ObjectId("#{feed_item.id.to_s}") } }
+      ])
+    end
+  end
   context 'a string field cursor' do
     let(:feed_item) { Feed::Item.create!(a_string: 'astring') }
     subject do
@@ -25,7 +38,6 @@ describe Mongoid::Scroll::Cursor do
     its(:criteria) do
       should eq('$or' => [
         { 'a_string' => { '$gt' => feed_item.a_string } },
-        { 'a_string' => feed_item.a_string, :_id => { '$gt' => feed_item.id } }
       ])
     end
   end
@@ -39,7 +51,7 @@ describe Mongoid::Scroll::Cursor do
     its(:criteria) do
       should eq('$or' => [
         { 'a_integer' => { '$gt' => feed_item.a_integer } },
-        { 'a_integer' => feed_item.a_integer, :_id => { '$gt' => feed_item.id } }
+        { 'a_integer' => feed_item.a_integer, '_id' => { '$gt' => feed_item.id } }
       ])
     end
   end
@@ -54,7 +66,7 @@ describe Mongoid::Scroll::Cursor do
     its(:criteria) do
       should eq('$or' => [
         { 'a_datetime' => { '$gt' => feed_item.a_datetime } },
-        { 'a_datetime' => feed_item.a_datetime, :_id => { '$gt' => feed_item.id } }
+        { 'a_datetime' => feed_item.a_datetime, '_id' => { '$gt' => feed_item.id } }
       ])
     end
   end
@@ -69,7 +81,7 @@ describe Mongoid::Scroll::Cursor do
     its(:criteria) do
       should eq('$or' => [
         { 'a_date' => { '$gt' => feed_item.a_date.to_datetime } },
-        { 'a_date' => feed_item.a_date.to_datetime, :_id => { '$gt' => feed_item.id } }
+        { 'a_date' => feed_item.a_date.to_datetime, '_id' => { '$gt' => feed_item.id } }
       ])
     end
   end
@@ -84,7 +96,7 @@ describe Mongoid::Scroll::Cursor do
     its(:criteria) do
       should eq('$or' => [
         { 'a_time' => { '$gt' => feed_item.a_time } },
-        { 'a_time' => feed_item.a_time, :_id => { '$gt' => feed_item.id } }
+        { 'a_time' => feed_item.a_time, '_id' => { '$gt' => feed_item.id } }
       ])
     end
   end
@@ -99,7 +111,7 @@ describe Mongoid::Scroll::Cursor do
     its(:criteria) do
       should eq('$or' => [
         { 'a_time' => { '$gt' => feed_item.a_time } },
-        { 'a_time' => feed_item.a_time, :_id => { '$gt' => feed_item.id } }
+        { 'a_time' => feed_item.a_time, '_id' => { '$gt' => feed_item.id } }
       ])
     end
   end
